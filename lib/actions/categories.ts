@@ -29,6 +29,9 @@ export async function createCategory(
     if (error.code === "23505") {
       return { success: false, error: "A category with this name and type already exists." };
     }
+    if (error.code === "42501") {
+      return { success: false, error: "You do not have permission to create this category." };
+    }
     return { success: false, error: "Could not create the category. Please try again." };
   }
 

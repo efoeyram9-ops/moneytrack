@@ -1,17 +1,8 @@
--- Keep profile preference columns aligned with the Settings form.
+-- Create profiles for accounts that existed before the profile trigger was installed.
 alter table public.profiles
   add column if not exists currency_symbol text not null default 'GH₵';
 
 alter table public.profiles drop constraint if exists profiles_date_format_check;
-
-update public.profiles
-set currency_symbol = case currency
-  when 'USD' then '$'
-  when 'EUR' then '€'
-  when 'GBP' then '£'
-  when 'NGN' then '₦'
-  else 'GH₵'
-end;
 
 update public.profiles
 set date_format = case date_format
@@ -27,3 +18,11 @@ alter table public.profiles
 
 alter table public.profiles
   alter column date_format set default 'dd/MM/yyyy';
+
+insert into public.profiles (id, full_name, email)
+select
+  id,
+  coalesce(raw_user_meta_data->>'full_name', ''),
+  email
+from auth.users
+on conflict (id) do nothing;

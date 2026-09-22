@@ -99,11 +99,6 @@ create table if not exists public.savings_goals (
 
 create index if not exists savings_goals_user_id_idx on public.savings_goals (user_id);
 
--- ---------------------------------------------------------
--- 6. savings_contributions
---    Positive amount = deposit, negative amount = withdrawal.
---    current savings for a goal = sum(amount) for that goal.
--- ---------------------------------------------------------
 create table if not exists public.savings_contributions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
@@ -113,9 +108,33 @@ create table if not exists public.savings_contributions (
   contribution_date date not null default current_date,
   created_at timestamptz not null default now()
 );
-
+create index if not exists savings_contributions_goal_idx on public.savings_contributions (goal_id);
 create index if not exists savings_contributions_goal_id_idx on public.savings_contributions (goal_id);
 create index if not exists savings_contributions_user_id_idx on public.savings_contributions (user_id);
+
+-- Category access: users can manage their own categories and read defaults.
+alter table public.categories enable row level security;
+
+drop policy if exists "Users can read visible categories" on public.categories;
+create policy "Users can read visible categories"
+  on public.categories for select
+  using (user_id is null or user_id = auth.uid());
+
+drop policy if exists "Users can create own categories" on public.categories;
+create policy "Users can create own categories"
+  on public.categories for insert
+  with check (user_id = auth.uid());
+
+drop policy if exists "Users can update own categories" on public.categories;
+create policy "Users can update own categories"
+  on public.categories for update
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+drop policy if exists "Users can delete own categories" on public.categories;
+create policy "Users can delete own categories"
+  on public.categories for delete
+  using (user_id = auth.uid());
 
 -- =========================================================
 -- Triggers
