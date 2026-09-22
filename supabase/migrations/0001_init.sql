@@ -13,8 +13,9 @@ create table if not exists public.profiles (
   full_name text not null default '',
   email text not null,
   currency text not null default 'GHS',
-  date_format text not null default 'DD/MM/YYYY'
-    check (date_format in ('DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD')),
+  currency_symbol text not null default 'GH₵',
+  date_format text not null default 'dd/MM/yyyy'
+    check (date_format in ('dd/MM/yyyy', 'MM/dd/yyyy', 'yyyy-MM-dd')),
   theme text not null default 'system' check (theme in ('light', 'dark', 'system')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
